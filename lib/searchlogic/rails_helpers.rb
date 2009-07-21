@@ -37,7 +37,7 @@ module Searchlogic
         end
         html_options[:class] = css_classes.join(" ")
       end
-      link_to options[:as], url_for(options[:params_scope] => search.conditions.merge( { :order => new_scope } ) ), html_options
+      link_to options[:as], url_for(options[:params_scope] => search.conditions.merge( { :order_by => new_scope } ) ), html_options
     end
 
     # Automatically makes the form method :get if a Searchlogic::Search and sets
@@ -53,13 +53,13 @@ module Searchlogic
       end
       super
     end
-    
-    # Automatically adds an "order" hidden field in your form to preserve how the data 
+
+    # Automatically adds an "order" hidden field in your form to preserve how the data
     # is being ordered.
     def fields_for(*args, &block)
       if search_obj = args.find { |arg| arg.is_a?(Searchlogic::Search) }
         args.unshift(:search) if args.first == search_obj
-        concat(content_tag("div", hidden_field_tag("#{args.first}[order]", search_obj.order)) + "\n")
+        concat(content_tag("div", hidden_field_tag("#{args.first}[order_by]", search_obj.order)) + "\n")
         super
       else
         super
@@ -67,3 +67,4 @@ module Searchlogic
     end
   end
 end
+
