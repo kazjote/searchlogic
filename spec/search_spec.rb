@@ -291,6 +291,14 @@ describe "Search" do
     it "should recognize the order condition" do
       User.search(:order_by => "ascend_by_username").proxy_options.should == User.ascend_by_username.proxy_options
     end
+
+    it "should return actual ordering condition" do
+      User.search(:order_by => "ascend_by_username").order_by.should == "ascend_by_username"
+    end
+
+    it "should return nil when no actual ordering condition" do
+      User.search.order_by.should == nil
+    end
   end
 end
 
