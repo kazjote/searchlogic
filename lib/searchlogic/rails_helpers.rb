@@ -37,7 +37,10 @@ module Searchlogic
         end
         html_options[:class] = css_classes.join(" ")
       end
-      link_to options[:as], url_for(options[:params_scope] => search.conditions.merge( { :order_by => new_scope } ) ), html_options
+      url_options = {
+        options[:params_scope] => search.conditions.merge( { :order_by => new_scope } )
+      }.deep_merge(options[:params] || {})
+      link_to options[:as], url_for(url_options), html_options
     end
 
     # Automatically makes the form method :get if a Searchlogic::Search and sets
