@@ -38,7 +38,7 @@ module Searchlogic
         html_options[:class] = css_classes.join(" ")
       end
       url_options = {
-        options[:params_scope] => search.conditions.merge( { :order_by => new_scope } )
+        options[:params_scope] => search.conditions.merge( { :order => new_scope } )
       }.deep_merge(options[:params] || {})
       link_to options[:as], url_for(url_options), html_options
     end
@@ -62,7 +62,7 @@ module Searchlogic
     def fields_for(*args, &block)
       if search_obj = args.find { |arg| arg.is_a?(Searchlogic::Search) }
         args.unshift(:search) if args.first == search_obj
-        concat(content_tag("div", hidden_field_tag("#{args.first}[order_by]", search_obj.order)) + "\n")
+        concat(content_tag("div", hidden_field_tag("#{args.first}[order]", search_obj.order)) + "\n")
         super
       else
         super

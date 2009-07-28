@@ -299,7 +299,7 @@ describe "Search" do
     end
 
     it "should recognize the order condition" do
-      User.search(:order_by => "ascend_by_username").proxy_options.should == User.ascend_by_username.proxy_options
+      User.search(:order => "ascend_by_username").proxy_options.should == User.ascend_by_username.proxy_options
     end
   end
 end
