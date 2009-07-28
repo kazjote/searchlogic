@@ -23,9 +23,9 @@ module Searchlogic
       options[:as] ||= options[:by].to_s.humanize
       options[:ascend_scope] ||= "ascend_by_#{options[:by]}"
       options[:descend_scope] ||= "descend_by_#{options[:by]}"
-      ascending = search.order_by.to_s == options[:ascend_scope]
+      ascending = search.order.to_s == options[:ascend_scope]
       new_scope = ascending ? options[:descend_scope] : options[:ascend_scope]
-      selected = [options[:ascend_scope], options[:descend_scope]].include?(search.order_by.to_s)
+      selected = [options[:ascend_scope], options[:descend_scope]].include?(search.order.to_s)
       if selected
         css_classes = html_options[:class] ? html_options[:class].split(" ") : []
         if ascending
