@@ -5,14 +5,15 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "searchlogic"
-    gem.summary = "Searchlogic provides common named scopes and object based searching for ActiveRecord."
-    gem.description = "Searchlogic provides common named scopes and object based searching for ActiveRecord."
+    gem.summary = "Searchlogic makes using ActiveRecord named scopes easier and less repetitive."
+    gem.description = "Searchlogic makes using ActiveRecord named scopes easier and less repetitive."
     gem.email = "bjohnson@binarylogic.com"
     gem.homepage = "http://github.com/binarylogic/searchlogic"
     gem.authors = ["Ben Johnson of Binary Logic"]
     gem.rubyforge_project = "searchlogic"
     gem.add_dependency "activerecord", ">= 2.0.0"
   end
+  Jeweler::RubyforgeTasks.new
 rescue LoadError
   puts "Jeweler (or a dependency) not available. Install it with: sudo gem install jeweler"
 end
@@ -29,15 +30,6 @@ Spec::Rake::SpecTask.new(:rcov) do |spec|
   spec.rcov = true
 end
 
+task :spec => :check_dependencies
 
 task :default => :spec
-
-begin
-  require 'rake/contrib/sshpublisher'
-  namespace :rubyforge do
-    desc "Release gem to RubyForge"
-    task :release => ["rubyforge:release:gem"]
-  end
-rescue LoadError
-  puts "Rake SshDirPublisher is unavailable or your rubyforge environment is not configured."
-end

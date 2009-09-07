@@ -17,7 +17,7 @@ module Searchlogic
   class Search
     # Responsible for adding a "search" method into your models.
     module Implementation
-      # Additional method, gets aliases as "search" if that method
+      # Additional method, gets aliased as "search" if that method
       # is available. A lot of other libraries like to use "search"
       # as well, so if you have a conflict like this, you can use
       # this method directly.
@@ -79,20 +79,21 @@ module Searchlogic
     
     private
       def method_missing(name, *args, &block)
-        if name.to_s =~ /(\w+)=$/
-          condition = $1.to_sym
-          scope_name = normalize_scope_name($1)
+        condition_name = condition_name(name)
+        scope_name = scope_name(condition_name)
+        
+        if setter?(name)
           if scope?(scope_name)
-            conditions[condition] = type_cast(args.first, cast_type(scope_name))
+            conditions[condition_name] = type_cast(args.first, cast_type(scope_name))
           else
-            raise UnknownConditionError.new(name)
+            raise UnknownConditionError.new(condition_name)
           end
-        elsif scope?(normalize_scope_name(name))
+        elsif scope?(scope_name)
           if args.size > 0
-            send("#{name}=", *args)
+            send("#{condition_name}=", *args)
             self
           else
-            conditions[name]
+            conditions[condition_name]
           end
         else
           scope = conditions.inject(klass.scoped(current_scope)) do |scope, condition|
@@ -119,6 +120,19 @@ module Searchlogic
         klass.column_names.include?(scope_name.to_s) ? "#{scope_name}_equals".to_sym : scope_name.to_sym
       end
       
+      def setter?(name)
+        !(name.to_s =~ /=$/).nil?
+      end
+      
+      def condition_name(name)
+        condition = name.to_s.match(/(\w+)=?$/)[1]
+        condition ? condition.to_sym : nil
+      end
+      
+      def scope_name(condition_name)
+        condition_name && normalize_scope_name(condition_name)
+      end
+      
       def scope?(scope_name)
         klass.scopes.key?(scope_name) || klass.condition?(scope_name)
       end
@@ -141,7 +155,7 @@ module Searchlogic
         else
           # Let's leverage ActiveRecord's type casting, so that casting is consistent
           # with the other models.
-          column_for_type_cast = ActiveRecord::ConnectionAdapters::Column.new("", nil)
+          column_for_type_cast = ::ActiveRecord::ConnectionAdapters::Column.new("", nil)
           column_for_type_cast.instance_variable_set(:@type, type)
           value = column_for_type_cast.type_cast(value)
           Time.zone && value.is_a?(Time) ? value.in_time_zone : value

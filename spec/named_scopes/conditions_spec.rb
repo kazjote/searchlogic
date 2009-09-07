@@ -15,6 +15,9 @@ describe "Conditions" do
     it "should have equals" do
       (5..7).each { |age| User.create(:age => age) }
       User.age_equals(6).all.should == User.find_all_by_age(6)
+      User.age_equals(nil).all.should == User.find_all_by_age(nil)
+      User.age_equals(5..6).all.should == User.find_all_by_age(5..6)
+      User.age_equals([5, 7]).all.should == User.find_all_by_age([5, 7])
     end
     
     it "should have does not equal" do
@@ -90,11 +93,26 @@ describe "Conditions" do
       ["bjohnson", ""].each { |username| User.create(:username => username) }
       User.username_empty.all.should == User.find_all_by_username("")
     end
+    
+    it "should have blank" do
+      ["bjohnson", "", nil].each { |username| User.create(:username => username) }
+      User.username_blank.all.should == [User.find_by_username(""), User.find_by_username(nil)]
+    end
+    
+    it "should have not blank" do
+      ["bjohnson", "", nil].each { |username| User.create(:username => username) }
+      User.username_not_blank.all.should == User.find_all_by_username("bjohnson")
+    end
   end
   
   context "any and all conditions" do
     it "should do nothing if no arguments are passed" do
       User.username_equals_any.proxy_options.should == {}
+    end
+    
+    it "should treat an array and multiple arguments the same" do
+      %w(bjohnson thunt dgainor).each { |username| User.create(:username => username) }
+      User.username_like_any("bjohnson", "thunt").should == User.username_like_any(["bjohnson", "thunt"])
     end
     
     it "should have equals any" do
@@ -203,9 +221,6 @@ describe "Conditions" do
     end
     
     it "should have is_not" do
-      # This is matching "not" first. How do you give priority in a regex? Because it's matching the
-      # 'not' condition and thinking the column is 'age_is'.
-      pending
       User.age_is_not(5).proxy_options.should == User.age_does_not_equal(5).proxy_options
     end
     
@@ -273,5 +288,8 @@ describe "Conditions" do
   
   it "should have priorty to columns over conflicting association conditions" do
     Company.users_count_gt(10)
+    User.create
+    User.company_id_null.count.should == 1
+    User.company_id_not_null.count.should == 0
   end
 end

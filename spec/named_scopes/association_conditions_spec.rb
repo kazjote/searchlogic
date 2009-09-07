@@ -9,11 +9,36 @@ describe "Association Conditions" do
     Company.users_orders_total_greater_than(10).proxy_options.should == Order.total_greater_than(10).proxy_options.merge(:joins => {:users => :orders})
   end
   
-  it "should not allowed named scopes on non existent association columns" do
+  it "should allow the use of foreign pre-existing named scopes" do
+    User.named_scope :uname, lambda { |value| {:conditions => ["users.username = ?", value]} }
+    Company.users_uname("bjohnson").proxy_options.should == User.uname("bjohnson").proxy_options.merge(:joins => :users)
+  end
+  
+  it "should allow the use of deep foreign pre-existing named scopes" do
+    pending
+    Order.named_scope :big_id, :conditions => "orders.id > 100"
+    Company.users_orders_big_id.proxy_options.should == Order.big_id.proxy_options.merge(:joins => {:users => :orders})
+  end
+  
+  it "should allow the use of foreign pre-existing alias scopes" do
+    User.alias_scope :username_has, lambda { |value| User.username_like(value) }
+    Company.users_username_has("bjohnson").proxy_options.should == User.username_has("bjohnson").proxy_options.merge(:joins => :users)
+  end
+  
+  it "should not raise errors for scopes that don't return anything" do
+    User.alias_scope :blank_scope, lambda { |value| }
+    Company.users_blank_scope("bjohnson").proxy_options.should == {:joins => :users}
+  end
+  
+  it "should ignore polymorphic associations" do
+    lambda { Fee.owner_created_at_gt(Time.now) }.should raise_error(NoMethodError)
+  end
+  
+  it "should not allow named scopes on non existent association columns" do
     lambda { User.users_whatever_like("bjohnson") }.should raise_error(NoMethodError)
   end
   
-  it "should not allowed named scopes on non existent deep association columns" do
+  it "should not allow named scopes on non existent deep association columns" do
     lambda { User.users_orders_whatever_like("bjohnson") }.should raise_error(NoMethodError)
   end
   
@@ -100,5 +125,10 @@ describe "Association Conditions" do
     user = company.users.create(:username => "bjohnson")
     order = user.orders.create(:total => 20, :taxes => 3)
     Company.users_orders_taxes_lt(50).ascend_by_users_orders_total.all(:include => {:users => :orders}).should == Company.all
+  end
+  
+  it "should automatically add string joins if the association condition is using strings" do
+    User.named_scope(:orders_big_id, :joins => User.inner_joins(:orders))
+    Company.users_orders_big_id.proxy_options.should == {:joins=>[" INNER JOIN \"users\" ON users.company_id = companies.id ", " INNER JOIN \"orders\" ON orders.user_id = users.id "]}
   end
 end

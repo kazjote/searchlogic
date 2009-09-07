@@ -14,6 +14,7 @@ ActiveRecord::Schema.define(:version => 1) do
   create_table :companies do |t|
     t.datetime :created_at
     t.datetime :updated_at
+    t.string :name
     t.integer :users_count, :default => 0
   end
   
@@ -26,6 +27,12 @@ ActiveRecord::Schema.define(:version => 1) do
     t.integer :age
   end
   
+  create_table :carts do |t|
+    t.datetime :created_at
+    t.datetime :updated_at
+    t.integer :user_id
+  end
+  
   create_table :orders do |t|
     t.datetime :created_at
     t.datetime :updated_at
@@ -33,6 +40,14 @@ ActiveRecord::Schema.define(:version => 1) do
     t.date :shipped_on
     t.float :taxes
     t.float :total
+  end
+  
+  create_table :fees do |t|
+    t.datetime :created_at
+    t.datetime :updated_at
+    t.string :owner_type
+    t.integer :owner_id
+    t.float :cost
   end
   
   create_table :line_items do |t|
@@ -56,12 +71,16 @@ Spec::Runner.configure do |config|
     class User < ActiveRecord::Base
       belongs_to :company, :counter_cache => true
       has_many :orders, :dependent => :destroy
-      alias_scope :username_has, lambda { |value| username_like(value) }
+      has_many :orders_big, :class_name => 'Order', :conditions => 'total > 100'
     end
     
     class Order < ActiveRecord::Base
       belongs_to :user
       has_many :line_items, :dependent => :destroy
+    end
+    
+    class Fee < ActiveRecord::Base
+      belongs_to :owner, :polymorphic => true
     end
     
     class LineItem < ActiveRecord::Base
