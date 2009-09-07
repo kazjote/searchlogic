@@ -49,7 +49,7 @@ describe "Search" do
     search2.all.should == User.all
     search1.all.should == [user2]
   end
-  
+
   it "should delete the condition" do
     search = User.search(:username_like => "bjohnson")
     search.delete("username_like")
@@ -115,14 +115,14 @@ describe "Search" do
       search.users_uname = "bjohnson"
       search.users_uname.should == "bjohnson"
     end
-    
+
     it "should allow setting pre-existing association alias conditions" do
       User.alias_scope :username_has, lambda { |value| User.username_like(value) }
       search = Company.search
       search.users_username_has = "bjohnson"
       search.users_username_has.should == "bjohnson"
     end
-    
+
     it "should allow using custom conditions" do
       User.named_scope(:four_year_olds, { :conditions => { :age => 4 } })
       search = User.search
@@ -164,7 +164,7 @@ describe "Search" do
       search = User.search
       lambda { search.destroy = true }.should raise_error(Searchlogic::Search::UnknownConditionError)
     end
-    
+
     it "should not use the ruby implementation of the id method" do
       search = User.search
       search.id.should be_nil
@@ -319,6 +319,19 @@ describe "Search" do
 
     it "should recognize the order condition" do
       User.search(:order => "ascend_by_username").proxy_options.should == User.ascend_by_username.proxy_options
+    end
+
+    it "should not use default scope ordering when one explicitly provided" do
+      # default_scope is :order => "created_at asc"
+      fee1 = Fee.create(:cost => 2.0)
+      fee2 = Fee.create(:cost => 1.0)
+
+      Fee.search(:order => "ascend_by_cost").proxy_options.should == {:order => "fees.cost ASC"}
+    end
+
+    it "should use default scope ordering when no ordering conditions provided" do
+      # default_scope is :order => "created_at asc"
+      Fee.search.proxy_options.should == {:order => "created_at ASC"}
     end
   end
 end

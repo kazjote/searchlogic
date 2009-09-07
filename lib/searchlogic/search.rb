@@ -25,7 +25,7 @@ module Searchlogic
         Search.new(self, scope(:find), conditions)
       end
     end
-    
+
     # Is an invalid condition is used this error will be raised. Ex:
     #
     #   User.search(:unkown => true)
@@ -37,28 +37,29 @@ module Searchlogic
         super(msg)
       end
     end
-    
-    attr_accessor :klass, :current_scope, :conditions
+
+    attr_accessor :klass, :current_scope, :conditions, :default_order
     undef :id if respond_to?(:id)
-    
+
     # Creates a new search object for the given class. Ex:
     #
     #   Searchlogic::Search.new(User, {}, {:username_like => "bjohnson"})
     def initialize(klass, current_scope, conditions = {})
       self.klass = klass
+      self.default_order = current_scope.delete(:order) if self.current_scope
       self.current_scope = current_scope
       self.conditions = conditions if conditions.is_a?(Hash)
     end
-    
+
     def clone
       self.class.new(klass, current_scope && current_scope.clone, conditions.clone)
     end
-    
+
     # Returns a hash of the current conditions set.
     def conditions
       @conditions ||= {}
     end
-    
+
     # Accepts a hash of conditions.
     def conditions=(values)
       values.each do |condition, value|
@@ -67,7 +68,7 @@ module Searchlogic
         send("#{condition}=", value)
       end
     end
-    
+
     # Delete a condition from the search. Since conditions map to named scopes,
     # if a named scope accepts a parameter there is no way to actually delete
     # the scope if you do not want it anymore. A nil value might be meaningful
@@ -76,12 +77,12 @@ module Searchlogic
       names.each { |name| @conditions.delete(name.to_sym) }
       self
     end
-    
+
     private
       def method_missing(name, *args, &block)
         condition_name = condition_name(name)
         scope_name = scope_name(condition_name)
-        
+
         if setter?(name)
           if scope?(scope_name)
             conditions[condition_name] = type_cast(args.first, cast_type(scope_name))
@@ -101,7 +102,7 @@ module Searchlogic
             scope_name = normalize_scope_name(scope_name)
             klass.send(scope_name, value) if !klass.respond_to?(scope_name)
             arity = klass.named_scope_arity(scope_name)
-            
+
             if !arity || arity == 0
               if value == true
                 scope.send(scope_name)
@@ -112,31 +113,32 @@ module Searchlogic
               scope.send(scope_name, value)
             end
           end
+          scope = scope.scoped(:order => default_order) if default_order
           scope.send(name, *args, &block)
         end
       end
-      
+
       def normalize_scope_name(scope_name)
         klass.column_names.include?(scope_name.to_s) ? "#{scope_name}_equals".to_sym : scope_name.to_sym
       end
-      
+
       def setter?(name)
         !(name.to_s =~ /=$/).nil?
       end
-      
+
       def condition_name(name)
         condition = name.to_s.match(/(\w+)=?$/)[1]
         condition ? condition.to_sym : nil
       end
-      
+
       def scope_name(condition_name)
         condition_name && normalize_scope_name(condition_name)
       end
-      
+
       def scope?(scope_name)
         klass.scopes.key?(scope_name) || klass.condition?(scope_name)
       end
-      
+
       def cast_type(name)
         klass.send(name, nil) if !klass.respond_to?(name) # We need to set up the named scope if it doesn't exist, so we can get a value for named_ssope_options
         named_scope_options = klass.named_scope_options(name)
@@ -147,7 +149,7 @@ module Searchlogic
           named_scope_options.respond_to?(:searchlogic_arg_type) ? named_scope_options.searchlogic_arg_type : :string
         end
       end
-      
+
       def type_cast(value, type)
         case value
         when Array
@@ -163,3 +165,4 @@ module Searchlogic
       end
   end
 end
+
