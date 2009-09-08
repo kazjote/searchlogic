@@ -46,8 +46,11 @@ module Searchlogic
     #   Searchlogic::Search.new(User, {}, {:username_like => "bjohnson"})
     def initialize(klass, current_scope, conditions = {})
       self.klass = klass
-      self.default_order = current_scope.delete(:order) if self.current_scope
-      self.current_scope = current_scope
+      if current_scope
+        current_scope = current_scope.dup
+        self.default_order = current_scope.delete(:order)
+        self.current_scope = current_scope
+      end
       self.conditions = conditions if conditions.is_a?(Hash)
     end
 
@@ -113,7 +116,8 @@ module Searchlogic
               scope.send(scope_name, value)
             end
           end
-          scope = scope.scoped(:order => default_order) if default_order
+          scope = scope.scoped(:order => default_order) if
+            default_order && !scope.proxy_options.has_key?(:order)
           scope.send(name, *args, &block)
         end
       end

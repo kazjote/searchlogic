@@ -14,7 +14,9 @@ describe "Search" do
       company = Company.create
       user = company.users.create
       search = company.users.search
-      search.current_scope.should == company.users.scope(:find)
+      expected_options = company.users.scope(:find).dup
+      expected_options.delete(:order)
+      search.current_scope.should == expected_options
     end
   end
 
