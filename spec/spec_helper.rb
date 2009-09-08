@@ -81,6 +81,8 @@ Spec::Runner.configure do |config|
     
     class Fee < ActiveRecord::Base
       belongs_to :owner, :polymorphic => true
+      
+      default_scope :order => "created_at ASC"
     end
     
     class LineItem < ActiveRecord::Base
