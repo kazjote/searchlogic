@@ -14,7 +14,9 @@ describe "Search" do
       company = Company.create
       user = company.users.create
       search = company.users.search
-      search.current_scope.should == company.users.scope(:find)
+      expected_options = company.users.scope(:find).dup
+      expected_options.delete(:order)
+      search.current_scope.should == expected_options
     end
   end
   
@@ -319,6 +321,16 @@ describe "Search" do
     
     it "should recognize the order condition" do
       User.search(:order => "ascend_by_username").proxy_options.should == User.ascend_by_username.proxy_options
+    end
+    
+    it "should not use default scope ordering when one explicitly provided" do
+      # default_scope is :order => "created_at asc"
+      Fee.search(:order => "ascend_by_cost").proxy_options.should == {:order => "fees.cost ASC"}
+    end
+
+    it "should use default scope ordering when no ordering conditions provided" do
+      # default_scope is :order => "created_at asc"
+      Fee.search.proxy_options.should == {:order => "created_at ASC"}
     end
   end
 end
