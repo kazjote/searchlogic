@@ -60,8 +60,8 @@ module Searchlogic
       end
       super
     end
-    
-    # Automatically adds an "order" hidden field in your form to preserve how the data 
+
+    # Automatically adds an "order" hidden field in your form to preserve how the data
     # is being ordered.
     def fields_for(*args, &block)
       if search_obj = args.find { |arg| arg.is_a?(Searchlogic::Search) }
@@ -74,3 +74,4 @@ module Searchlogic
     end
   end
 end
+

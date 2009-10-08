@@ -17,7 +17,7 @@ ActiveRecord::Schema.define(:version => 1) do
     t.string :name
     t.integer :users_count, :default => 0
   end
-  
+
   create_table :users do |t|
     t.datetime :created_at
     t.datetime :updated_at
@@ -26,13 +26,13 @@ ActiveRecord::Schema.define(:version => 1) do
     t.string :name
     t.integer :age
   end
-  
+
   create_table :carts do |t|
     t.datetime :created_at
     t.datetime :updated_at
     t.integer :user_id
   end
-  
+
   create_table :orders do |t|
     t.datetime :created_at
     t.datetime :updated_at
@@ -41,7 +41,7 @@ ActiveRecord::Schema.define(:version => 1) do
     t.float :taxes
     t.float :total
   end
-  
+
   create_table :fees do |t|
     t.datetime :created_at
     t.datetime :updated_at
@@ -49,7 +49,7 @@ ActiveRecord::Schema.define(:version => 1) do
     t.integer :owner_id
     t.float :cost
   end
-  
+
   create_table :line_items do |t|
     t.datetime :created_at
     t.datetime :updated_at
@@ -67,33 +67,33 @@ Spec::Runner.configure do |config|
     class Company < ActiveRecord::Base
       has_many :users, :dependent => :destroy
     end
-    
+
     class User < ActiveRecord::Base
       belongs_to :company, :counter_cache => true
       has_many :orders, :dependent => :destroy
       has_many :orders_big, :class_name => 'Order', :conditions => 'total > 100'
     end
-    
+
     class Order < ActiveRecord::Base
       belongs_to :user
       has_many :line_items, :dependent => :destroy
     end
-    
+
     class Fee < ActiveRecord::Base
       belongs_to :owner, :polymorphic => true
       default_scope :order => "created_at ASC"
     end
-    
+
     class LineItem < ActiveRecord::Base
       belongs_to :order
     end
-    
+
     Company.destroy_all
     User.destroy_all
     Order.destroy_all
     LineItem.destroy_all
   end
-  
+
   config.after(:each) do
     Object.send(:remove_const, :Company)
     Object.send(:remove_const, :User)
@@ -101,3 +101,4 @@ Spec::Runner.configure do |config|
     Object.send(:remove_const, :LineItem)
   end
 end
+

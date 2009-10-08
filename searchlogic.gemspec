@@ -82,3 +82,4 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<activerecord>, [">= 2.0.0"])
   end
 end
+

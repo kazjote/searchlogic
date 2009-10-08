@@ -17,7 +17,7 @@ module Searchlogic
         :greater_than => [:gt, :after],
         :greater_than_or_equal_to => [:gte],
       }
-      
+
       WILDCARD_CONDITIONS = {
         :like => [:contains, :includes],
         :not_like => [],
@@ -26,7 +26,7 @@ module Searchlogic
         :ends_with => [:ew],
         :not_end_with => [:does_not_end_with]
       }
-      
+
       BOOLEAN_CONDITIONS = {
         :null => [:nil],
         :not_null => [:not_nil],
@@ -34,26 +34,26 @@ module Searchlogic
         :blank => [],
         :not_blank => [:present]
       }
-      
+
       CONDITIONS = {}
-      
+
       # Add any / all variations to every comparison and wildcard condition
       COMPARISON_CONDITIONS.merge(WILDCARD_CONDITIONS).each do |condition, aliases|
         CONDITIONS[condition] = aliases
         CONDITIONS["#{condition}_any".to_sym] = aliases.collect { |a| "#{a}_any".to_sym }
         CONDITIONS["#{condition}_all".to_sym] = aliases.collect { |a| "#{a}_all".to_sym }
       end
-      
+
       BOOLEAN_CONDITIONS.each { |condition, aliases| CONDITIONS[condition] = aliases }
-      
+
       PRIMARY_CONDITIONS = CONDITIONS.keys
       ALIAS_CONDITIONS = CONDITIONS.values.flatten
-      
+
       # Is the name of the method a valid condition that can be dynamically created?
       def condition?(name)
         local_condition?(name)
       end
-      
+
       private
         def local_condition?(name)
           return false if name.blank?
@@ -69,13 +69,13 @@ module Searchlogic
             super
           end
         end
-        
+
         def condition_details(name)
           if name.to_s =~ /^(#{column_names.join("|")})_(#{(PRIMARY_CONDITIONS + ALIAS_CONDITIONS).join("|")})$/
             {:column => $1, :condition => $2}
           end
         end
-        
+
         def create_condition(column, condition, args)
           if PRIMARY_CONDITIONS.include?(condition.to_sym)
             create_primary_condition(column, condition)
@@ -124,10 +124,10 @@ module Searchlogic
           when "not_blank"
             {:conditions => "#{table_name}.#{column} != '' AND #{table_name}.#{column} IS NOT NULL"}
           end
-          
+
           named_scope("#{column}_#{condition}".to_sym, scope_options)
         end
-        
+
         # This method helps cut down on defining scope options for conditions that allow *_any or *_all conditions.
         # Kepp in mind that the lambdas get cached in a method, so you want to keep the contents of the lambdas as
         # fast as possible, which is why I didn't do the case statement inside of the lambda.
@@ -138,7 +138,7 @@ module Searchlogic
               return {} if values.empty?
               values.flatten!
               values.collect! { |value| value_with_modifier(value, value_modifier) }
-              
+
               join = $1 == "any" ? " OR " : " AND "
               scope_sql = values.collect { |value| sql.is_a?(Proc) ? sql.call(value) : sql }.join(join)
               
@@ -154,7 +154,7 @@ module Searchlogic
             }
           end
         end
-        
+
         def value_with_modifier(value, modifier)
           case modifier
           when :like
@@ -167,7 +167,7 @@ module Searchlogic
             value
           end
         end
-        
+
         def create_alias_condition(column, condition, args)
           primary_condition = primary_condition(condition)
           alias_name = "#{column}_#{condition}"
@@ -203,3 +203,4 @@ module Searchlogic
     end
   end
 end
+
