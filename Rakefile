@@ -4,7 +4,7 @@ require 'rake'
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
-    gem.name = "searchlogic"
+    gem.name = "kazjote-searchlogic"
     gem.summary = "Searchlogic makes using ActiveRecord named scopes easier and less repetitive."
     gem.description = "Searchlogic makes using ActiveRecord named scopes easier and less repetitive."
     gem.email = "bjohnson@binarylogic.com"
